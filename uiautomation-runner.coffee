@@ -15,7 +15,7 @@ build_and_test = (settings, callback=(->)) ->
   functions = [
     spawn_charles
     quit_simulator
-    delete_simulator_applications
+    delete_simulator_apps
     xcodebuild
     trust_ca_certs
     run_instruments
@@ -37,13 +37,6 @@ close = (settings, callback=(->)) ->
       # If you SIGKILL Charles, you're [sometimes] going to have a bad time
       process.kill pid, 'SIGTERM'
     callback null
-
-
-process.on 'uncaughtException', (e) ->
-  close () ->
-    console.log '*** Exception ***'
-    console.log e
-    process.exit 1
 
 
 xcodebuild = (settings, callback=(->)) ->
@@ -77,8 +70,11 @@ run_instruments = (settings, callback=(->)) ->
       callback e
 
 
-delete_simulator_applications = (settings, callback) ->
-  spawn_with_output 'bash', ['-c', 'rm -rf ~/Library/Application\\ Support/iPhone\\ Simulator/*/Applications/*'], callback
+delete_simulator_apps = (settings, callback) ->
+  if settings.delete_simulator_apps
+    spawn_with_output 'bash', ['-c', 'rm -rf ~/Library/Application\\ Support/iPhone\\ Simulator/*/Applications/*'], callback
+  else
+    callback null
 
 
 quit_simulator = (settings, callback=(->)) ->

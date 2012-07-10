@@ -1,6 +1,6 @@
 fs = require 'fs'
 {spawn} = require 'child_process'
-{xml_escape, spawn_with_output, mkdirp} = require './util'
+{timeoutSet, xml_escape, spawn_with_output, mkdirp} = require './util'
 global_state = require './global_state'
 
 
@@ -9,7 +9,7 @@ CHARLES_PATH = "/Applications/Charles.app/Contents/MacOS/Charles"
 
 spawn_charles = (settings, callback) ->
 
-  _confirm_charles_isnt_running (e) ->
+  _ensure_charles_isnt_running (e) ->
     return callback e if e
 
     # charles.config
@@ -39,11 +39,19 @@ class Charles
         console.log "Charles exited with code #{code}"
 
 
-_confirm_charles_isnt_running = (callback) ->
+_ensure_charles_isnt_running = (callback) ->
   spawn_with_output 'ps', ['ax'], (e, out, err) ->
     return callback e if e
-    return callback "Charles is already running" if out.match /Applications\/Charles\.app/
-    callback null
+    m = out.match /\n[ \t]*([0-9]+).*?Applications\/Charles\.app/
+    if not m
+      callback null
+    else
+      console.log "Charles is already running. Quitting and respawning it..."
+      pid = parseInt m[1], 10
+      process.kill pid, 'SIGTERM'
+      # TODO keep `ps ax`ing until it's gone
+      timeoutSet 5000, () ->
+        callback null
 
 
 _find_proxy_dest = (settings, callback) ->

@@ -9,6 +9,7 @@
       xcode_scheme:         'myawesomeproduct'
       xcode_configuration:  'Test'
       app_filename:         'My Awesome Product.app'
+      delete_simulator_apps: true
     }
 
 

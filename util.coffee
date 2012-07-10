@@ -34,14 +34,16 @@ spawn_with_output = (command, args, opt, callback) ->
   p = spawn command, args, opt
   out_arr = []
   err_arr = []
-  p.stdout.on 'data', (data) ->
-    if noisy
-      process.stdout.write data
-    out_arr.push data.toString 'utf-8'
-  p.stderr.on 'data', (data) ->
-    if noisy
-      process.stderr.write data
-    err_arr.push data.toString 'utf-8'
+  if p.stdout
+    p.stdout.on 'data', (data) ->
+      if noisy
+        process.stdout.write data
+      out_arr.push data.toString 'utf-8'
+  if p.stderr
+    p.stderr.on 'data', (data) ->
+      if noisy
+        process.stderr.write data
+      err_arr.push data.toString 'utf-8'
   p.on 'exit', (code) ->
     out = out_arr.join ''
     err = err_arr.join ''
