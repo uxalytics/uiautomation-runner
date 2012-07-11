@@ -1,6 +1,7 @@
 fs = require 'fs'
 zlib = require 'zlib'
 async = require 'async'
+{exec} = require 'child_process'
 {spawn_with_output} = require './util'
 
 
@@ -30,14 +31,11 @@ trust_ca_certs = (settings, callback) ->
 
 
 fingerprint_for_cert_path = (path, callback) ->
-  args = ['x509', '-noout', '-in', path, '-fingerprint']
-  spawn_with_output "/usr/bin/openssl", args, (e, out, err) ->
+  exec "/usr/bin/openssl x509 -noout -in '#{path}' -fingerprint", args, (e, out, err) ->
     return callback e if e
     m = out.match /SHA1 Fingerprint=([A-F0-9:]+)/
     if not m
-      console.log err
-      console.log out
-      return callback 'unexpected output from openssl'
+      return callback "unexpected output from openssl: #{JSON.stringify [err, out]}"
     sha1 = m[1].replace /:/g, ''
     callback null, sha1
 
