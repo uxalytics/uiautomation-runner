@@ -4,6 +4,7 @@
 {trust_ca_certs} = require './trust'
 {spawn_charles} = require './charles'
 global_state = require './global_state'
+{exec} = require 'child_process'
 async = require 'async'
 
 
@@ -18,6 +19,7 @@ build_and_test = (settings, callback=(->)) ->
     delete_simulator_apps
     xcodebuild
     trust_ca_certs
+    install_on_device
     run_instruments
     quit_simulator
     close
@@ -49,6 +51,16 @@ xcodebuild = (settings, callback=(->)) ->
     'build',
     ('CONFIGURATION_BUILD_DIR=' + build_dir)
   ], {noisy:true}, callback
+
+
+install_on_device = (settings, callback) ->
+  {device_udid, bundle_id, build_dir, app_filename} = settings
+  app_path = "#{build_dir}/#{app_filename}"
+  return callback null if not device_udid
+  exec "fruitstrap uninstall --id '#{device_udid}' --bundle '#{bundle_id}'", (e, out, err) ->
+    exec "fruitstrap install --id '#{device_udid}' --bundle '#{app_path}'", (e, out, err) ->
+      return callback e if e
+      callback null
 
 
 run_instruments = (settings, callback=(->)) ->

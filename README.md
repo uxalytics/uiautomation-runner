@@ -17,6 +17,7 @@
 
     {
       ...
+      bundle_id: 'com.example.foo'
       device_udid: '...'
     }
 
