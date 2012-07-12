@@ -43,6 +43,7 @@ Suppose you want to man-in-the-middle HTTPS requests whose host matches `*foo*` 
         mim_https_to_local: {
           foo: 3001
         }
+        headless: false     # Default: true
       }
       trust_charles: true   # Works for the simulator -- for physical devices, you'll need to manually trust the cert
     }

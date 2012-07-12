@@ -22,18 +22,19 @@ spawn_charles = (settings, callback) ->
         fs.writeFile config_path, config, (e) ->
           return callback e if e
 
-          charles = new Charles config_path
+          charles = new Charles config_path, settings.charles
           global_state.pids_to_kill_when_closing.push charles.p.pid
           callback null
 
 
 class Charles
-  constructor: (config_path) ->
+  constructor: (config_path, charles_settings) ->
     @_expectingExit = false
-    @p = spawn CHARLES_PATH, [
-      '-headless'
-      '-config', config_path
-    ]
+    args = []
+    if charles_settings.headless != false
+      args.push '-headless'
+    args.push '-config', config_path
+    @p = spawn CHARLES_PATH, args
     @p.on 'exit', (code) ->
       if code
         console.log "Charles exited with code #{code}"
