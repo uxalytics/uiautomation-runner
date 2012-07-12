@@ -31,7 +31,7 @@ trust_ca_certs = (settings, callback) ->
 
 
 fingerprint_for_cert_path = (path, callback) ->
-  exec "/usr/bin/openssl x509 -noout -in '#{path}' -fingerprint", args, (e, out, err) ->
+  exec "/usr/bin/openssl x509 -noout -in '#{path}' -fingerprint", (e, out, err) ->
     return callback e if e
     m = out.match /SHA1 Fingerprint=([A-F0-9:]+)/
     if not m
