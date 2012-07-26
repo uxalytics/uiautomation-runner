@@ -6,6 +6,7 @@ async = require 'async'
 
 
 trust_ca_certs = (settings, callback) ->
+  return callback null if settings.device_udid
   {trust_charles, trust_ca_cert_paths} = settings
   return callback null if trust_ca_cert_paths.length == 0 and not trust_charles
   truststore_path = "#{process.env.HOME}/Library/Application\ Support/iPhone\ Simulator/5.1/Library/Keychains/TrustStore.sqlite3"
