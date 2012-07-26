@@ -57,10 +57,13 @@ install_on_device = (settings, callback) ->
   {device_udid, bundle_id, build_dir, app_filename} = settings
   app_path = "#{build_dir}/#{app_filename}"
   return callback null if not device_udid
-  exec "fruitstrap uninstall --id '#{device_udid}' --bundle '#{bundle_id}'", (e, out, err) ->
-    exec "fruitstrap install --id '#{device_udid}' --bundle '#{app_path}'", (e, out, err) ->
-      return callback e if e
-      callback null
+  async.forEachSeries(
+    [
+      ['uninstall', '--id', device_udid, '--bundle', bundle_id]
+      ['install', '--id', device_udid, '--bundle', app_path]
+    ],
+    ((args, cb) -> spawn_with_output 'fruitstrap', args, {noisy:true}, cb),
+    callback)
 
 
 run_instruments = (settings, callback=(->)) ->
