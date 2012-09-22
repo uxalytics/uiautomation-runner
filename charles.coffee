@@ -9,6 +9,8 @@ CHARLES_PATH = "/Applications/Charles.app/Contents/MacOS/Charles"
 
 spawn_charles = (settings, callback) ->
 
+  return callback null if not settings.charles
+
   _ensure_charles_isnt_running (e) ->
     return callback e if e
 
