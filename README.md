@@ -13,6 +13,12 @@
     }
 
 
+## Some Optional Settings
+
+    # default: Xcode's Automation.tracetemplate
+    tracetemplate: ".../Foo.tracetemplate"
+
+
 ## [TODO] Running on a physical device
 
     {

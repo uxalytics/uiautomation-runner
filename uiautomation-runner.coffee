@@ -1,15 +1,12 @@
+fs = require 'fs'
+{exec} = require 'child_process'
 {
   timeoutSet, parent_of, mkdirp, spawn_with_output
 } = require './util'
 {trust_ca_certs} = require './trust'
 {spawn_charles} = require './charles'
 global_state = require './global_state'
-{exec} = require 'child_process'
 async = require 'async'
-
-
-PLATFORMS_DIR = "/Applications/Xcode.app/Contents/Developer/Platforms"
-AUTOMATION_TEMPLATE_PATH = "#{PLATFORMS_DIR}/iPhoneOS.platform/Developer/Library/Instruments/PlugIns/AutomationInstrument.bundle/Contents/Resources/Automation.tracetemplate"
 
 
 build_and_test = (settings, callback=(->)) ->
@@ -20,6 +17,7 @@ build_and_test = (settings, callback=(->)) ->
     xcodebuild
     trust_ca_certs
     install_on_device
+    find_tracetemplate
     run_instruments
     quit_simulator
     close
@@ -66,15 +64,24 @@ install_on_device = (settings, callback) ->
     callback)
 
 
+find_tracetemplate = (settings, callback) ->
+  xcode45 = "/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/PlugIns/AutomationInstrument.bundle/Contents/Resources/Automation.tracetemplate"
+  xcode44 = "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Instruments/PlugIns/AutomationInstrument.bundle/Contents/Resources/Automation.tracetemplate"
+  return callback null if settings.tracetemplate
+  async.filter [xcode45, xcode44], fs.exists, (paths) ->
+    return callback "Couldn't find a .tracetemplate" if paths.length == 0
+    settings.tracetemplate = paths[0]
+    callback null
+
+
 run_instruments = (settings, callback=(->)) ->
-  {device_udid, template, build_dir, results_dir, script_path, app_filename} = settings
+  {device_udid, tracetemplate, build_dir, results_dir, script_path, app_filename} = settings
   mkdirp results_dir, (e) ->
     return callback e if e
-    template or= AUTOMATION_TEMPLATE_PATH
     args = []
     if device_udid
       args.push '-w', device_udid
-    args.push '-t', template
+    args.push '-t', tracetemplate
     args.push "#{build_dir}/#{app_filename}"
     args.push '-e', 'UIARESULTSPATH', results_dir
     args.push '-e', 'UIASCRIPT', script_path
