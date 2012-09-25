@@ -1,8 +1,12 @@
 fs = require 'fs'
 zlib = require 'zlib'
+_ = require 'underscore'
 async = require 'async'
 {exec} = require 'child_process'
 {spawn_with_output} = require './util'
+
+
+SIMULATORS_DIR = "#{process.env.HOME}/Library/Application\ Support/iPhone\ Simulator"
 
 
 trust_ca_certs = (settings, callback) ->
@@ -10,7 +14,17 @@ trust_ca_certs = (settings, callback) ->
   return callback null if not trust_ca_cert_paths
   return callback null if settings.device_udid
   return callback null if trust_ca_cert_paths.length == 0 and not trust_charles
-  truststore_path = "#{process.env.HOME}/Library/Application\ Support/iPhone\ Simulator/5.1/Library/Keychains/TrustStore.sqlite3"
+
+  fs.readdir SIMULATORS_DIR, (e, filenames) ->
+    return callback e if e
+    versions = _.filter filenames, (v) -> v.match /^[0-9.]+$/
+    truststore_paths = ("#{SIMULATORS_DIR}/#{v}/Library/Keychains/TrustStore.sqlite3" for v in versions)
+
+    f = (truststore_path, callback) -> set_up_truststore truststore_path, settings, callback
+    async.forEach truststore_paths, f, callback
+
+
+set_up_truststore = (truststore_path, settings, callback) ->
 
   # Ensure TrustStore.sqlite exists
   load_truststore_sqlite3 (e, data) ->
