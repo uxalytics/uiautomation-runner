@@ -100,13 +100,24 @@ delete_simulator_apps = (settings, callback) ->
 
 
 quit_simulator = (settings, callback=(->)) ->
-  script = 'tell application "iPhone Simulator" to quit'
-  spawn_with_output 'osascript', ['-e', script], callback
+  get_xcode_version (xcode_version) ->
+    name = if xcode_version >= '4.5.2' then "iOS Simulator" else "iPhone Simulator"
+    script = "tell application \"#{name}\" to quit"
+    spawn_with_output 'osascript', ['-e', script], callback
 
 
 bring_simulator_to_front = (settings, callback=(->)) ->
   script = 'tell application "iPhone Simulator" to activate'
   spawn_with_output 'osascript', ['-e', script], callback
+
+
+get_xcode_version = (c) ->
+  path = "/Applications/Xcode.app/Contents/Info.plist"
+  exec "defaults read '#{path}' CFBundleShortVersionString", (e, out, err) ->
+    return c null if e
+    m = out.match(/([^ \n]+)/)
+    return c null if not m
+    c m[1]
 
 
 module.exports = {
