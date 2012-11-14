@@ -33,7 +33,7 @@ set_up_truststore = (truststore_path, settings, callback) ->
       return callback e if e
 
       # INSERT OR IGNORE INTO tsettings
-      async.map trust_ca_cert_paths, fingerprint_for_cert_path, (e, fingerprints) ->
+      async.map settings.trust_ca_cert_paths, fingerprint_for_cert_path, (e, fingerprints) ->
         return callback e if e
         sql_statements = []
         if settings.trust_charles
